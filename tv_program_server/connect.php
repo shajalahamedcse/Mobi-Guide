@@ -3,10 +3,29 @@
    $host = "localhost";
    $username = "root";
    $password = "";
-   $database = "wepokaor_tv_program_db";
+   $database = "tv_program_db";
    
-   mysql_connect($host, $username, $password);
-   mysql_select_db($database);
+   @mysql_connect($host, $username, $password);
+
+   if (!mysql_select_db($database)) {
+
+      // create db and import tables
+      
+      mysql_query("CREATE DATABASE IF NOT EXISTS " . $database);
+      mysql_select_db($database);
+
+      $fp = file('tv_program_db.sql', FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+      $query = '';
+      foreach ($fp as $line) {
+         if ($line != '' && strpos($line, '--') === false) {
+            $query .= $line;
+            if (substr($query, -1) == ';') {
+               mysql_query($query);
+               $query = '';
+            }
+         }
+      }
+   }
 
    mysql_query("SET time_zone='+6:00' ");
    mysql_query("SET CHARACTER SET utf8");
